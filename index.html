@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dopamin</title>
+  <!-- ?v= sürüm numarası: dosyalar değişince artırılır, tarayıcı eski sürümü önbellekten getirmesin -->
+  <link rel="stylesheet" href="stil.css?v=12">
+</head>
+<body>
+  <div id="firildak"></div>
+  <canvas id="fx"></canvas>
+  <div id="flas"></div>
+
+  <main id="sahne">
+    <div id="rafKutu">
+      <div id="raf"></div>
+      <div id="esyaPanel" hidden>
+        <div class="esya-baslik">Eşyalar</div>
+        <div id="esyaListe" class="esya-liste"></div>
+      </div>
+    </div>
+    <div id="sayac">
+      <div id="miktar">0</div>
+      <div id="birim">dopamin</div>
+      <div id="sps" hidden>saniyede 0</div>
+      <div id="jetonKutu" hidden>
+        <span class="jeton-sayi">🪙 <b id="jetonSayi">0</b></span>
+        <button id="jetonBoost" type="button">5 🪙 → 30 sn 2 kat</button>
+      </div>
+      <div id="etkiler"></div>
+      <div id="seviye" hidden>
+        <div class="seviye-ust"><span id="seviyeNo">Seviye 1</span><span id="seviyeYuzde">%0</span></div>
+        <div class="seviye-cubuk"><div id="seviyeDolu"></div></div>
+      </div>
+    </div>
+    <button id="buton" type="button"><span>TIKLA</span></button>
+  </main>
+
+  <div id="pencereler"></div>
+  <div id="toplanabilir"></div>
+  <div id="yumurtalar"></div>
+  <div id="altyazi" hidden></div>
+  <div id="smsler"></div>
+  <div id="ipucu" hidden></div>
+  <div id="son" hidden>
+    <canvas></canvas>
+    <div class="son-yazi">
+      <h1>Okyanustasın.</h1>
+      <p>Ekranlar, bildirimler, sayaçlar... hepsi geride kaldı.</p>
+      <p class="son-istatistik"></p>
+      <button id="yenidenBasla" type="button">Baştan başla</button>
+    </div>
+  </div>
+  <div id="ucanlar"></div>
+  <div id="bildirimler"></div>
+
+  <div id="bant" hidden>
+    <span class="etiket">SON DAKİKA</span>
+    <div class="kayan"><span id="bantYazi"></span></div>
+  </div>
+
+  <div id="sesPanel" class="panel-kutu" hidden>
+    <div class="panel-baslik"><span>Ses ayarları</span><button type="button" class="kapat" data-kapat="sesPanel" aria-label="Kapat">✕</button></div>
+    <label class="anahtar"><input type="checkbox" id="sesAcikKutu"> Ses açık</label>
+    <div id="sesKaydiricilar"></div>
+  </div>
+
+  <div id="debugPanel" class="panel-kutu" hidden>
+    <div class="panel-baslik"><span>🛠 Debug <small>(F1)</small></span><button type="button" class="kapat" data-kapat="debugPanel" aria-label="Kapat">✕</button></div>
+    <div id="debugIcerik"></div>
+  </div>
+
+  <footer id="alt">
+    <button id="sesBtn" type="button" title="Ses">🔊</button>
+    <button id="sifirla" type="button">Sıfırla</button>
+    <span class="esin">neal.fun/stimulation-clicker'dan esinlenilmiştir</span>
+  </footer>
+
+  <script src="ayarlar.js?v=12"></script>
+  <script src="oyun.js?v=12"></script>
+</body>
+</html>
