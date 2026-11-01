@@ -138,13 +138,13 @@ const YUKSELTMELER = [
   { id: 'yemek', ad: 'Yemek Videosu', fiyat: 6000, sps: 60, acik: 'Biri yemek yiyor. Saniyede +60' },
   { id: 'ekran', ad: 'Ekran Süresi', fiyat: 7500, acik: 'Ekran alışkanlıklarını takip et' },
   { id: 'seviye', ad: 'Seviyeler', fiyat: 8000, acik: 'Tecrübe kazan, seviye atla' },
-  { id: 'slot', ad: 'Slot Makinesi', fiyat: 12000, acik: 'Arada bir çevir. Jetonlar kendiliğinden dolar.' },
+  { id: 'slot', ad: 'Slot Makinesi', fiyat: 12000, acik: 'Arada bir çevir. Tutarsa elindeki dopamini katlar.' },
   { id: 'otoPres', ad: 'Otomatik Pres', fiyat: 15000, gerek: ['pres'], acik: 'Pres kendi kendine başlar ve toplar' },
   { id: 'kose', ad: 'Köşe Vuruşu', fiyat: 15000, gerek: ['dvd'], acik: 'DVD köşeye çarparsa 10 kat dopamin' },
   { id: 'arayuz', ad: 'Arayüz Yükseltmesi', fiyat: 15000, acik: 'Parlak renkler. Daha çok gradyan.' },
   { id: 'esya', ad: 'Eşya Dükkanı', fiyat: 17500, acik: 'Butonun için yeni tipler ve sesler al' },
   { id: 'kazi', ad: 'Kazı Kazan', fiyat: 20000, acik: 'Ara sıra kazı kazan bileti gelir' },
-  { id: 'dolar', ad: 'Dolar', fiyat: 25000, acik: 'Dolar al, bekle, sat. Kur hiç düşmez.' },
+  { id: 'dolar', ad: 'Dolar', fiyat: 25000, acik: 'Dolar al, bekle, sat. Arada düşer ama uzun vadede hep yükselir.' },
   { id: 'duolingo', ad: 'Duolingo', fiyat: 25000, acik: 'Yeni bir dil öğren. Yoksa...' },
   { id: 'whatsapp', ad: 'Aile WhatsApp Grubu', fiyat: 30000, acik: 'Aile grubuna katıl. Mesajlara cevap ver.' },
   { id: 'asmr', ad: 'ASMR', fiyat: 35000, sps: 120, acik: 'Kulağına fısıldasınlar. Saniyede +120' },
@@ -170,7 +170,9 @@ const YUKSELTMELER = [
 ];
 
 function tikGucu() {
-  return 1 + (adet('ucusan') ? 1 : 0) + (adet('buton') ? 1 : 0);
+  // Sahip olunan her buton tipi, takılı olmasa da tıklamayı kalıcı olarak güçlendirir
+  const tipBonusu = BUTON_TIPLERI.reduce((t, b) => t + (S.esyalar[b.id] ? b.tik : 0), 0);
+  return 1 + (adet('ucusan') ? 1 : 0) + (adet('buton') ? 1 : 0) + tipBonusu;
 }
 function saniyeBasi() {
   let t = 0;
@@ -602,7 +604,7 @@ const YERLER = {
   ekran:     { x: 1330, y: 540, w: 240, h: 194, r: 2 },
   // açılır pencereler: kısa süreliğine bir tarafın üstüne gelir
   duo:       { x: 150,  y: 280, w: 300, h: 225, r: -2 },
-  kazi:      { x: 1160, y: 300, w: 300, h: 175, r: 2 },
+  kazi:      { x: 1005, y: 300, w: 300, h: 175, r: 2 },
 };
 // Videolar ve hangi ses kanalına bağlı oldukları (tam ekranda hepsi tünele taşınır)
 const VIDEO_KANALI = {
@@ -713,7 +715,11 @@ function videoSesi(id, varsayilan = 25) {
 // YouTube altyazıyı bazen video başladıktan sonra açtığı için kapatma birkaç kez tekrarlanır.
 function oynaticiHazirlaninca(f) {
   if (!f) return;
+  // YouTube oynatıcısı açılırken bir an videonun adını ve oynat düğmesini gösterir.
+  // Video oynamaya başlayana kadar oynatıcı görünmez tutulur, sonra yavaşça belirir.
+  f.classList.add('aciliyor');
   f.addEventListener('load', () => {
+    setTimeout(() => f.classList.remove('aciliyor'), 2800);
     setTimeout(videoSesleriniAyarla, 1200);
     for (const gecikme of [1200, 4000, 10000]) {
       setTimeout(() => {
@@ -978,11 +984,12 @@ const Radyo = {
 
 // ============ eşya dükkanı ============
 const BUTON_TIPLERI = [
-  { id: 'klasik', ad: 'Klasik', fiyat: 0 },
-  { id: 'klavye', ad: 'Mekanik Klavye Tuşu', fiyat: 2500 },
-  { id: 'atari', ad: 'Atari Butonu', fiyat: 6000 },
-  { id: 'balon', ad: 'Balon', fiyat: 12000 },
-  { id: 'altin', ad: 'Altın Buton', fiyat: 40000 },
+  // tik: sahip olunca tık başına kalıcı olarak eklenen dopamin
+  { id: 'klasik', ad: 'Klasik', fiyat: 0, tik: 0 },
+  { id: 'klavye', ad: 'Mekanik Klavye Tuşu', fiyat: 2500, tik: 5 },
+  { id: 'atari', ad: 'Atari Butonu', fiyat: 6000, tik: 15 },
+  { id: 'balon', ad: 'Balon', fiyat: 12000, tik: 40 },
+  { id: 'altin', ad: 'Altın Buton', fiyat: 40000, tik: 150 },
 ];
 
 // Eşyalar, raftaki 🛍️ ikonuna tıklayınca açılan panelde durur
@@ -1031,6 +1038,12 @@ const Esya = {
       b.classList.toggle('pahali', !sahip && S.dopamin < t.fiyat);
       b.innerHTML = '<span class="ad"></span><span class="durum"></span>';
       b.querySelector('.ad').textContent = t.ad;
+      if (t.tik) {
+        const bonus = document.createElement('small');
+        bonus.textContent = ` +${t.tik} tık`;
+        bonus.classList.toggle('kazanildi', !!sahip);
+        b.querySelector('.ad').appendChild(bonus);
+      }
       b.querySelector('.durum').textContent = takili ? 'Takılı' : sahip ? 'Tak' : fmt(t.fiyat);
       b.addEventListener('click', () => this.sec(t));
       liste.appendChild(b);
@@ -1074,6 +1087,8 @@ const Kazi = {
       const havuz = [...KAZI_ODULLERI, KAZI_CARPI];
       do semboller = [0, 1, 2].map(() => agirlikliSec(havuz));
       while (!semboller.includes(KAZI_CARPI));
+      // Nadiren üç kutu da ✖ olur (Kara Kedi başarımı)
+      if (Math.random() < 0.06) semboller = [KAZI_CARPI, KAZI_CARPI, KAZI_CARPI];
     }
     const carpan = olcek();
     const miktar = s => yuvarla(s.odul * carpan);
@@ -1153,6 +1168,7 @@ const Kazi = {
   sonuc(p, semboller, miktar) {
     const not = p.querySelector('.kazi-not');
     S.kazilan++;
+    if (semboller.every(x => x === KAZI_CARPI)) S.ucCarpi = (S.ucCarpi || 0) + 1;
     if (semboller[0] === semboller[1] && semboller[1] === semboller[2]) {
       const o = miktar(semboller[0]);
       kazan(o, 'kazi');
@@ -1169,15 +1185,18 @@ const Kazi = {
 
 // ============ slot makinesi ============
 // Jetonla çevrilir: en fazla 3 jeton birikir, her 30 saniyede bir jeton gelir.
-// Üç aynı meyve büyük ödül, iki aynı meyve küçük ödül.
+// Kazanç elindeki dopamini katlar, böylece oyunun sonunda da anlamlı kalır:
+// üç aynı meyve elindekini meyvenin çarpanıyla çarpar, iki aynı meyve %5 ekler.
+// Oyunun başında elinde az para varken de bir şey kazanılsın diye en az "taban" kadar verir.
 const SLOT_MEYVELERI = [
-  { s: '🍒', kat: 5, agirlik: 30 },
-  { s: '🍋', kat: 8, agirlik: 25 },
-  { s: '🍇', kat: 12, agirlik: 20 },
-  { s: '🍉', kat: 20, agirlik: 13 },
-  { s: '🔔', kat: 40, agirlik: 8 },
-  { s: '7️⃣', kat: 100, agirlik: 4 },
+  { s: '🍒', carpan: 1.2, taban: 200, agirlik: 30 },
+  { s: '🍋', carpan: 1.3, taban: 320, agirlik: 25 },
+  { s: '🍇', carpan: 1.5, taban: 480, agirlik: 20 },
+  { s: '🍉', carpan: 1.75, taban: 800, agirlik: 13 },
+  { s: '🔔', carpan: 2, taban: 1600, agirlik: 8 },
+  { s: '7️⃣', carpan: 3, taban: 4000, agirlik: 4 },
 ];
+const SLOT_IKILI_ORAN = 0.05;
 const SLOT_JETON_EN_FAZLA = 3;
 const SLOT_JETON_SURESI = 30;
 
@@ -1199,7 +1218,6 @@ const Slot = {
     if (S.slotJeton === undefined) S.slotJeton = SLOT_JETON_EN_FAZLA;
     this.ciz();
   },
-  odulTabani() { return 40 * olcek(); },
   guncelle(dt) {
     if (!this.p) return;
     if (S.slotJeton < SLOT_JETON_EN_FAZLA) {
@@ -1251,14 +1269,14 @@ const Slot = {
     const [a, b, c] = sonuc;
     let o = 0, yazi;
     if (a === b && b === c) {
-      o = Math.round(this.odulTabani() * a.kat);
-      yazi = 'JACKPOT! +' + fmt(o);
+      o = Math.round(Math.max(S.dopamin * (a.carpan - 1), a.taban * olcek()));
+      yazi = `JACKPOT! ×${String(a.carpan).replace('.', ',')} +${fmt(o)}`;
       S.jackpot++;
       Anlatici.soyle('Üç aynı meyve. Bu an hiç bitmesin istiyor.', true);
       Chat.olay('JACKPOT 🎰🎰🎰');
       Ses.kose();
     } else if (a === b || b === c || a === c) {
-      o = Math.round(this.odulTabani());
+      o = Math.round(Math.max(S.dopamin * SLOT_IKILI_ORAN, 40 * olcek()));
       yazi = '+' + fmt(o);
       Ses.satin();
     } else {
@@ -1391,8 +1409,12 @@ function piyasa(o) {
   };
 }
 
-// Dolar hiç düşmez, yavaşça yükselir
-const Dolar = piyasa({ id: 'dolar', baslik: 'USD / TRY', birim: '$', baslangic: 34.5, degisim: () => rastgele(0.0002, 0.0025) });
+// Dolar uzun vadede hep yükselir ama inişli çıkışlıdır: küçük dalgalanmaların yanında ara sıra
+// sert düşer. Ortalamada her 2 saniyede ~%0,08 artar; bir saatte aşağı yukarı 4-5 katına çıkar.
+const Dolar = piyasa({
+  id: 'dolar', baslik: 'USD / TRY', birim: '$', baslangic: 34.5,
+  degisim: () => (Math.random() < 0.03 ? -rastgele(0.03, 0.06) : rastgele(-0.005, 0.0095)),
+});
 // Kripto çılgınca oynar: ara sıra çakılır, ara sıra uçar
 const Kripto = piyasa({
   id: 'kripto', baslik: 'DopaCoin / DPC', birim: 'DPC', baslangic: 1000, taban: 1,
@@ -2217,6 +2239,7 @@ const BASARIMLAR = [
   { id: 'ekran1', ad: 'Ekran Bağımlısı', acik: '1 saat oyna', kosul: () => S.sure >= 3600, odul: 2000 },
   { id: 'esya', ad: 'Alışverişkolik', acik: 'Bir buton tipi satın al', kosul: () => Object.keys(S.esyalar).length > 1, odul: 2500 },
   { id: 'kazi', ad: 'Şanslı Gün', acik: 'Bir kazı kazan kazı', kosul: () => S.kazilan >= 1, odul: 1000 },
+  { id: 'ucCarpi', ad: 'Kara Kedi', acik: 'Kazı kazanda üç ✖ çıkar', kosul: () => S.ucCarpi >= 1, odul: 7500 },
   { id: 'dolar', ad: 'Döviz Bürosu', acik: 'Doları kârla sat', kosul: () => (S.piyasalar.dolar || {}).kar > 0, odul: 2500 },
   { id: 'jackpot', ad: 'JACKPOT', acik: 'Slotta üç aynı meyve tuttur', kosul: () => S.jackpot >= 1, odul: 5000 },
   { id: 'yumurta', ad: 'Ördek Çiftliği', acik: '10 ördek yumurtası topla', kosul: () => S.yumurta >= 10, odul: 10000 },
@@ -2718,6 +2741,11 @@ function baslat() {
   });
 
   setInterval(kaydet, 5000);
+  // YouTube bazen hareket eden ya da yeni açılan videoları durdurur; durmuş olanlar kendiliğinden devam etsin
+  setInterval(() => {
+    if (oyunBitti) return;
+    for (const f of document.querySelectorAll('#pencereler iframe, #duvar iframe, #radyoGizli iframe')) ytKomut(f, 'playVideo');
+  }, 5000);
   window.addEventListener('beforeunload', kaydet);
   document.addEventListener('visibilitychange', () => { if (document.hidden) kaydet(); });
 

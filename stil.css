@@ -165,7 +165,14 @@ html, body {
 /* "scale" özelliği, yerleşimin kullandığı "transform" ile çakışmaz */
 @keyframes ac { from { scale: .4; opacity: 0; } }
 .pencere .govde { position: relative; }
-.pencere iframe { display: block; width: 100%; height: 100%; border: 0; pointer-events: none; }
+/* Oynatıcı videodan uzun tutulur ve üstü altı kırpılır: YouTube'un üstte gösterdiği video adı
+   ve alttaki düğmeler kırpılan siyah şeritlerde kalır. Açılırken de bir süre görünmez tutulur. */
+.pencere iframe, .tunel .panel iframe {
+  position: absolute; left: 0; top: -30%; display: block; width: 100%; height: 160%; border: 0;
+  pointer-events: none; transition: opacity .6s;
+}
+iframe.aciliyor { opacity: 0; }
+.pencere .govde:has(iframe), .tunel .panel { background: #000; }
 .pencere .bos {
   height: 100%;
   display: flex;
@@ -351,6 +358,8 @@ body.bantli #alt { bottom: 48px; }
   color: inherit;
 }
 .esya .durum { font-weight: 700; color: var(--vurgu-koyu); }
+.esya small { font-weight: 700; color: var(--soluk); }
+.esya small.kazanildi { color: #1a9e50; }
 .esya.takili { border-color: #2ed573; background: #effcf3; }
 .esya.takili .durum { color: #1a9e50; }
 .esya.pahali { opacity: .5; cursor: default; }
@@ -506,11 +515,17 @@ body.bantli #yumurtalar { bottom: 42px; }
   85% { opacity: 1; }
   100% { translate: 0 0 280px; opacity: 0; }
 }
-.tunel .panel iframe { width: 100%; height: 100%; border: 0; }
-#duvar.solucan { animation: renkKay 10s linear infinite; }
 #duvar.solucan .tunel { animation-duration: 9s, 3s; }
 #duvar.solucan .panel { animation-duration: 3.5s; }
-@keyframes renkKay { to { filter: hue-rotate(360deg) saturate(1.4); } }
+/* Solucan deliğinde renkler, videolara dokunmayan üstteki yarı saydam bir katmanla kayar */
+#duvar::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+#duvar.solucan::after { opacity: .28; animation: renkKay 10s linear infinite; }
+@keyframes renkKay {
+  0%, 100% { background: #ff2a6d; }
+  25% { background: #05d9e8; }
+  50% { background: #7c3aed; }
+  75% { background: #f9c80e; }
+}
 /* Tam ekrana geçerken video pencereleri dönerek merkeze çekilir */
 .pencere.cekil { animation: cekil 1s cubic-bezier(.55,0,.85,.35) forwards; }
 @keyframes cekil { to { translate: var(--dx) var(--dy); rotate: 540deg; scale: .05; opacity: 0; } }
@@ -596,5 +611,4 @@ body.suslu .pencere { border-radius: 14px; }
 @media (max-width: 760px) {
   #raf { max-width: 300px; }
   .kutucuk { width: 44px; height: 44px; font-size: 22px; border-radius: 12px; }
-  .esin { display: none; }
 }
