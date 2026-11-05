@@ -167,12 +167,12 @@ html, body {
 .pencere .govde { position: relative; }
 /* Oynatıcı videodan uzun tutulur ve üstü altı kırpılır: YouTube'un üstte gösterdiği video adı
    ve alttaki düğmeler kırpılan siyah şeritlerde kalır. Açılırken de bir süre görünmez tutulur. */
-.pencere iframe, .tunel .panel iframe {
+.pencere iframe {
   position: absolute; left: 0; top: -30%; display: block; width: 100%; height: 160%; border: 0;
   pointer-events: none; transition: opacity .6s;
 }
 iframe.aciliyor { opacity: 0; }
-.pencere .govde:has(iframe), .tunel .panel { background: #000; }
+.pencere .govde:has(iframe) { background: #000; }
 .pencere .bos {
   height: 100%;
   display: flex;
@@ -485,39 +485,24 @@ body.bantli #yumurtalar { bottom: 42px; }
 .chat::before { content: "🔴 CANLI"; position: absolute; top: 5px; left: 8px; font-size: 11px; font-weight: 800; letter-spacing: .5px; color: #ff6b6b; }
 .chat-satir { line-height: 1.35; word-break: break-word; animation: belir .2s ease-out; }
 
-/* ---------- tam ekran: dönen video tüneli ---------- */
+/* ---------- tam ekran: kozmik arka plan ve video yörüngesi ---------- */
 #duvar {
   position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
   background: radial-gradient(ellipse at center, #3a1670 0%, #12052e 45%, #020008 100%);
-  perspective: 600px;
 }
-.tunel {
-  position: absolute; left: 50%; top: 50%; width: 0; height: 0;
-  transform-style: preserve-3d;
-  animation: tunelDon 40s linear infinite, nefes 8s ease-in-out infinite;
+/* Arkada yavaşça dönen girdap halkaları */
+#duvar::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 220vmax; height: 220vmax; margin: -110vmax 0 0 -110vmax;
+  background: repeating-conic-gradient(rgba(140, 90, 255, .16) 0 8deg, transparent 8deg 20deg);
+  -webkit-mask: radial-gradient(circle, transparent 6%, #000 40%);
+  mask: radial-gradient(circle, transparent 6%, #000 40%);
+  animation: girdap 60s linear infinite;
 }
-#duvar.giris .tunel { animation: tunelGiris 2.6s cubic-bezier(.2,.8,.3,1), tunelDon 40s linear 2.6s infinite, nefes 8s ease-in-out 2.6s infinite; }
-@keyframes tunelDon { to { transform: rotateZ(360deg); } }
-@keyframes nefes { 50% { scale: 1.18; } }
-@keyframes tunelGiris { from { transform: rotateZ(-900deg); scale: 0; opacity: 0; } }
-/* Her video tünelin çeperinde durur ve derinlikten ekrana doğru uçar; sonra yeniden en dipte belirir.
-   Paneller birbirinden zaman farkıyla uçtuğu için tünel hep dolu görünür. */
-.tunel .panel {
-  position: absolute; width: 40vmin; height: 22.5vmin; left: -20vmin; top: -11.25vmin;
-  transform: rotateZ(var(--aci)) translateY(-30vmin) rotateX(18deg);
-  border-radius: 14px; overflow: hidden; background: #000;
-  box-shadow: 0 0 50px rgba(150, 100, 255, .7);
-  animation: ucus 7s linear infinite; animation-delay: var(--gecikme);
-}
-@keyframes ucus {
-  0% { translate: 0 0 -1400px; opacity: 0; }
-  15% { opacity: 1; }
-  85% { opacity: 1; }
-  100% { translate: 0 0 280px; opacity: 0; }
-}
-#duvar.solucan .tunel { animation-duration: 9s, 3s; }
-#duvar.solucan .panel { animation-duration: 3.5s; }
-/* Solucan deliğinde renkler, videolara dokunmayan üstteki yarı saydam bir katmanla kayar */
+#duvar.giris { animation: uzayGel 2.5s ease-out; }
+@keyframes uzayGel { from { opacity: 0; } }
+@keyframes girdap { to { transform: rotate(360deg); } }
+#duvar.solucan::before { animation-duration: 12s; }
+/* Solucan deliğinde renkler, videolara dokunmayan yarı saydam bir katmanla kayar */
 #duvar::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; }
 #duvar.solucan::after { opacity: .28; animation: renkKay 10s linear infinite; }
 @keyframes renkKay {
@@ -526,9 +511,10 @@ body.bantli #yumurtalar { bottom: 42px; }
   50% { background: #7c3aed; }
   75% { background: #f9c80e; }
 }
-/* Tam ekrana geçerken video pencereleri dönerek merkeze çekilir */
-.pencere.cekil { animation: cekil 1s cubic-bezier(.55,0,.85,.35) forwards; }
-@keyframes cekil { to { translate: var(--dx) var(--dy); rotate: 540deg; scale: .05; opacity: 0; } }
+/* Tam ekran ve solucandaki video pencereleri: konumlarını her karede oyun ayarlar */
+.pencere.yorungede { box-shadow: 0 0 40px rgba(150, 100, 255, .75); will-change: transform; }
+/* Tam ekran ızgarası: köşesiz, gölgesiz, diğer pencerelerin arkasında ekranı kaplar */
+.pencere.yorungede.izgarada { border-radius: 0; box-shadow: none; z-index: -1; }
 
 /* ---------- anlatıcı altyazısı ---------- */
 #altyazi {

@@ -24,6 +24,13 @@ function sureFmt(sn) {
   return sa ? `${sa} sa ${dk} dk` : `${dk} dk ${Math.floor(sn % 60)} sn`;
 }
 
+// metinler.js'deki yazılarda {ad}, {tik}, {sure}, {dopamin} yer tutucularını doldurur
+function metin(sablon, ek = {}) {
+  const degerler = { tik: fmt(S.tik), sure: sureFmt(S.sure), dopamin: fmt(S.dopamin), ...ek };
+  return sablon.replace(/\{(\w+)\}/g, (tum, ad) => (ad in degerler ? degerler[ad] : tum));
+}
+const rastgeleMetin = (liste, ek) => metin(sec(liste), ek);
+
 // ============ durum ve kayıt ============
 const KAYIT = 'dopamin-kayit-v1';
 const S = {
@@ -111,31 +118,32 @@ function kazan(n, kaynak) {
 }
 
 // Ödüllerin oyunun ilerisinde de anlamlı kalması için pasif kazanca göre büyür
-const olcek = () => 1 + saniyeBasi() / 40;
+// Bölücü, oyunun sonunda (bütün pasifler alınmışken) ölçek ~75 olacak şekilde seçildi.
+const olcek = () => 1 + saniyeBasi() / 140;
 
 // ============ yükseltmeler ============
 // sps: saniye başına dopamin. gerek: önce alınması gerekenler. cokluAlim: tekrar alınabilir.
 // alinca: sadece satın alındığı an çalışır (kayıttan yüklerken çalışmaz).
 const YUKSELTMELER = [
-  { id: 'dvd', ad: 'Zıplayan DVD', fiyat: 3, cokluAlim: true, artis: 1.5, acik: () => `Her çarpmada +${dvdDegeri()} dopamin` },
-  { id: 'sekme', ad: 'Sekme Başlığı', fiyat: 5, acik: 'Dopamin sayacı artık sekmede de' },
-  { id: 'ucusan', ad: 'Uçuşan Sayılar', fiyat: 10, acik: 'Tık başına +1 dopamin' },
-  { id: 'sayac', ad: 'Saniye Sayacı', fiyat: 25, acik: 'Saniyede ne kadar dopamin aldığını gör' },
-  { id: 'buton', ad: 'Büyük Buton', fiyat: 40, acik: 'Daha büyük, daha iyi. Tık başına +1 dopamin' },
-  { id: 'dvdses', ad: 'DVD Çarpma Sesi', fiyat: 75, gerek: ['dvd'], acik: 'Çarpma başına +5 dopamin' },
-  { id: 'sondakika', ad: 'Son Dakika', fiyat: 100, sps: 4, acik: 'Gündemden kopma. Saniyede +4' },
-  { id: 'lofi', ad: 'Lofi', fiyat: 150, sps: 8, acik: 'Ders çalışırken dinle. Saniyede +8' },
-  { id: 'yagmur', ad: 'Yağmur Sesi', fiyat: 250, sps: 14, acik: 'Huzur veren yağmur. Saniyede +14' },
-  { id: 'subway', ad: 'Subway Surfers', fiyat: 400, sps: 22, acik: 'Dikkat süren için. Sessiz başlar. Saniyede +22' },
-  { id: 'presHiz', ad: 'Pres Hızı', fiyat: 500, gerek: ['pres'], acik: 'Pres %15 daha hızlı iner' },
-  { id: 'firildak', ad: 'Fırıldak', fiyat: 700, sps: 20, acik: 'Arkada bir şey dönsün. Saniyede +20' },
-  { id: 'pres', ad: 'Hidrolik Pres', fiyat: 1000, acik: 'Bir şeyleri yavaşça ez' },
-  { id: 'basarim', ad: 'Başarımlar', fiyat: 1500, acik: 'Başarılarını kutla' },
-  { id: 'gokgurultu', ad: 'Gök Gürültüsü', fiyat: 2000, gerek: ['yagmur'], sps: 8, acik: 'Yağmura gök gürültüsü ekle. Saniyede +8' },
-  { id: 'minecraft', ad: 'Minecraft Parkur', fiyat: 3500, sps: 30, acik: 'Bir video yetmiyordu. Saniyede +30' },
-  { id: 'slime', ad: 'ASMR Slime', fiyat: 4000, sps: 35, acik: 'Slime videoları izle. Saniyede +35' },
+  { id: 'dvd', ad: 'Zıplayan DVD', fiyat: 3, cokluAlim: true, artis: 1.45, acik: () => `Her çarpmada +${dvdDegeri()} dopamin` },
+  { id: 'sekme', ad: 'Sekme Başlığı', fiyat: 8, acik: 'Dopamin sayacı artık sekmede de' },
+  { id: 'ucusan', ad: 'Uçuşan Sayılar', fiyat: 15, acik: 'Tık başına +1 dopamin' },
+  { id: 'sayac', ad: 'Saniye Sayacı', fiyat: 40, acik: 'Saniyede ne kadar dopamin aldığını gör' },
+  { id: 'buton', ad: 'Büyük Buton', fiyat: 60, acik: 'Daha büyük, daha iyi. Tık başına +1 dopamin' },
+  { id: 'dvdses', ad: 'DVD Çarpma Sesi', fiyat: 110, gerek: ['dvd'], acik: 'Çarpma başına +5 dopamin' },
+  { id: 'sondakika', ad: 'Son Dakika', fiyat: 150, sps: 5, acik: 'Gündemden kopma. Saniyede +5' },
+  { id: 'lofi', ad: 'Lofi', fiyat: 225, sps: 8, acik: 'Ders çalışırken dinle. Saniyede +8' },
+  { id: 'yagmur', ad: 'Yağmur Sesi', fiyat: 375, sps: 12, acik: 'Huzur veren yağmur. Saniyede +12' },
+  { id: 'subway', ad: 'Subway Surfers', fiyat: 600, sps: 18, acik: 'Dikkat süren için. Sessiz başlar. Saniyede +18' },
+  { id: 'presHiz', ad: 'Pres Hızı', fiyat: 750, gerek: ['pres'], acik: 'Pres %15 daha hızlı iner' },
+  { id: 'firildak', ad: 'Fırıldak', fiyat: 1050, sps: 30, acik: 'Arkada bir şey dönsün. Saniyede +30' },
+  { id: 'pres', ad: 'Hidrolik Pres', fiyat: 1500, acik: 'Bir şeyleri yavaşça ez' },
+  { id: 'basarim', ad: 'Başarımlar', fiyat: 2000, acik: 'Başarılarını kutla' },
+  { id: 'gokgurultu', ad: 'Gök Gürültüsü', fiyat: 2000, gerek: ['yagmur'], sps: 50, acik: 'Yağmura gök gürültüsü ekle. Saniyede +50' },
+  { id: 'minecraft', ad: 'Minecraft Parkur', fiyat: 3500, sps: 80, acik: 'Bir video yetmiyordu. Saniyede +80' },
+  { id: 'slime', ad: 'ASMR Slime', fiyat: 4000, sps: 90, acik: 'Slime videoları izle. Saniyede +90' },
   { id: 'technicolor', ad: 'Technicolor', fiyat: 5000, gerek: ['dvd'], acik: 'DVD her çarpmada renk değiştirir. Çarpma başına +10' },
-  { id: 'yemek', ad: 'Yemek Videosu', fiyat: 6000, sps: 60, acik: 'Biri yemek yiyor. Saniyede +60' },
+  { id: 'yemek', ad: 'Yemek Videosu', fiyat: 6000, sps: 140, acik: 'Biri yemek yiyor. Saniyede +140' },
   { id: 'ekran', ad: 'Ekran Süresi', fiyat: 7500, acik: 'Ekran alışkanlıklarını takip et' },
   { id: 'seviye', ad: 'Seviyeler', fiyat: 8000, acik: 'Tecrübe kazan, seviye atla' },
   { id: 'slot', ad: 'Slot Makinesi', fiyat: 12000, acik: 'Arada bir çevir. Tutarsa elindeki dopamini katlar.' },
@@ -143,30 +151,30 @@ const YUKSELTMELER = [
   { id: 'kose', ad: 'Köşe Vuruşu', fiyat: 15000, gerek: ['dvd'], acik: 'DVD köşeye çarparsa 10 kat dopamin' },
   { id: 'arayuz', ad: 'Arayüz Yükseltmesi', fiyat: 15000, acik: 'Parlak renkler. Daha çok gradyan.' },
   { id: 'esya', ad: 'Eşya Dükkanı', fiyat: 17500, acik: 'Butonun için yeni tipler ve sesler al' },
+  { id: 'chat', ad: 'Yayın Chati', fiyat: 18000, sps: 200, acik: 'Yayın aç, chat seni izlesin. Saniyede +200' },
   { id: 'kazi', ad: 'Kazı Kazan', fiyat: 20000, acik: 'Ara sıra kazı kazan bileti gelir' },
-  { id: 'dolar', ad: 'Dolar', fiyat: 25000, acik: 'Dolar al, bekle, sat. Arada düşer ama uzun vadede hep yükselir.' },
+  { id: 'dolar', ad: 'Faiz', fiyat: 25000, acik: 'Paranı yatır, dakikada %2 faizle büyüsün. Hiç düşmez.' },
   { id: 'duolingo', ad: 'Duolingo', fiyat: 25000, acik: 'Yeni bir dil öğren. Yoksa...' },
-  { id: 'whatsapp', ad: 'Aile WhatsApp Grubu', fiyat: 30000, acik: 'Aile grubuna katıl. Mesajlara cevap ver.' },
-  { id: 'asmr', ad: 'ASMR', fiyat: 35000, sps: 120, acik: 'Kulağına fısıldasınlar. Saniyede +120' },
-  { id: 'gta', ad: 'GTA Mega Rampa', fiyat: 45000, sps: 80, acik: 'Arabalar rampadan uçuyor. Saniyede +80' },
+  { id: 'whatsapp', ad: 'WhatsApp Grubu', fiyat: 30000, acik: 'Kankalar grubuna katıl. Mesajlara cevap ver.' },
+  { id: 'asmr', ad: 'ASMR', fiyat: 35000, sps: 320, acik: 'Kulağına fısıldasınlar. Saniyede +320' },
+  { id: 'gta', ad: 'GTA Mega Rampa', fiyat: 45000, sps: 375, acik: 'Arabalar rampadan uçuyor. Saniyede +375' },
   { id: 'dvdHiz1', ad: 'DVD Hızı', fiyat: 50000, gerek: ['technicolor'], acik: "DVD'ler iki kat hızlı" },
-  { id: 'subwaySes', ad: 'Subway Surfers Sesli', fiyat: 50000, gerek: ['subway'], sps: 150, acik: 'Subway Surfers\'ın sesini aç. Saniyede +150' },
-  { id: 'asmr2', ad: 'ASMR 2x', fiyat: 60000, gerek: ['asmr'], sps: 100, acik: 'İki kat fısıltı. Saniyede +100' },
+  { id: 'subwaySes', ad: 'Subway Surfers Sesli', fiyat: 50000, gerek: ['subway'], sps: 400, acik: 'Subway Surfers\'ın sesini aç. Saniyede +400' },
+  { id: 'asmr2', ad: 'ASMR 2x', fiyat: 60000, gerek: ['asmr'], sps: 460, acik: 'İki kat fısıltı. Saniyede +460' },
   { id: 'sms', ad: 'SMS', fiyat: 60000, acik: 'Telefonuna mesajlar yağsın' },
-  { id: 'fitness', ad: 'Fitness Hocası', fiyat: 75000, sps: 100, acik: 'Ekran başında formda kal. Saniyede +100' },
-  { id: 'radyo', ad: 'Radyo', fiyat: 85000, sps: 120, acik: 'Arkada radyo çalsın. Ekranı yok, sadece sesi. Saniyede +120' },
+  { id: 'fitness', ad: 'Fitness Hocası', fiyat: 75000, sps: 540, acik: 'Ekran başında formda kal. Saniyede +540' },
+  { id: 'radyo', ad: 'Radyo', fiyat: 85000, sps: 590, acik: 'Arkada radyo çalsın. Ekranı yok, sadece sesi. Saniyede +590' },
   { id: 'jeton', ad: 'Oyun İçi Para', fiyat: 100000, acik: 'Akıllıca gizlenmiş mikro ödemeler' },
-  { id: 'tepki', ad: 'Tepki Yayıncısı', fiyat: 100000, sps: 200, acik: 'Kaosun içinde bir dost. Saniyede +200' },
-  { id: 'kripto', ad: 'Kripto', fiyat: 125000, gerek: ['dolar'], acik: 'Portföyüne kripto ekle. Bu düşebilir.' },
+  { id: 'tepki', ad: 'Tepki Yayıncısı', fiyat: 100000, sps: 670, acik: 'Kaosun içinde bir dost. Saniyede +670' },
+  { id: 'kripto', ad: 'Bitcoin', fiyat: 125000, gerek: ['dolar'], acik: 'Bitcoin al. Sert iner çıkar ama uzun vadede hep yükselir.' },
   { id: 'guclendirme', ad: 'Güçlendirmeler', fiyat: 150000, acik: 'Ekranda beliren güçlendirmeleri yakala' },
   { id: 'anlatici', ad: 'Anlatıcı', fiyat: 200000, acik: 'Olan biten her şeyi sesli anlatan biri' },
-  { id: 'tamEkran', ad: 'Tam Ekran', fiyat: 250000, gerek: ['subway'], sps: 500, acik: 'İşi ciddiye alma vakti. Saniyede +500' },
-  { id: 'kaldirac', ad: 'Kaldıraç', fiyat: 250000, gerek: ['dolar'], acik: 'Dolar ve kriptoda kâr da zarar da 2 kat' },
+  { id: 'tamEkran', ad: 'Tam Ekran', fiyat: 250000, gerek: ['subway'], sps: 1250, acik: 'İşi ciddiye alma vakti. Saniyede +1.250' },
+  { id: 'kaldirac', ad: 'Kaldıraç', fiyat: 250000, gerek: ['dolar'], acik: 'Faizde ve Bitcoin\'de kâr da zarar da 2 kat' },
   { id: 'ordek', ad: 'Ördek', fiyat: 300000, acik: 'Bir ördek sahiplen. Beslersen yumurtlar.' },
-  { id: 'chat', ad: 'Yayın Chati', fiyat: 500000, sps: 250, acik: 'Yayın aç, chat seni izlesin. Saniyede +250' },
   { id: 'dvdHiz2', ad: 'DVD Hızı II', fiyat: 500000, gerek: ['dvdHiz1'], acik: "DVD'ler yine iki kat hızlı" },
-  { id: 'solucan', ad: 'Solucan Deliği', fiyat: 1e6, gerek: ['tamEkran'], sps: 1000, acik: 'Zamanda ve uzayda yolculuk. Saniyede +1.000' },
-  { id: 'okyanus', ad: 'Okyanusa Git', fiyat: 2e6, gerek: ['solucan'], acik: 'Geri dönüşü yok.' },
+  { id: 'solucan', ad: 'Solucan Deliği', fiyat: 1e6, gerek: ['tamEkran'], sps: 3300, acik: 'Zamanda ve uzayda yolculuk. Saniyede +3.300' },
+  { id: 'okyanus', ad: 'Okyanusa Git', fiyat: 3e6, gerek: ['solucan'], acik: 'Geri dönüşü yok.' },
 ];
 
 function tikGucu() {
@@ -226,7 +234,7 @@ const ETKILER = {
   guclendirme: () => Guc.zamanla(),
   anlatici: () => Anlatici.kur(),
   // Satın alınca pencereler tünele çekilir; kayıttan yüklerken tünel doğrudan kurulur
-  tamEkran: () => (yukleniyor ? Duvar.kur(false) : Duvar.gec()),
+  tamEkran: () => Yorunge.baslat(!yukleniyor),
   ordek: () => Ordek.kur(),
   chat: () => Chat.kur(),
   solucan: () => Duvar.solucan(),
@@ -249,8 +257,8 @@ function satinAl(id) {
   Ses.satin();
   if (ETKILER[id]) ETKILER[id]();
   if (ALINCA[id]) ALINCA[id]();
-  Anlatici.soyle(sec([`${y.ad}. Tam da ihtiyacı olan şey.`, `Ve ${y.ad} da geldi. Ekran biraz daha kalabalık.`, `${y.ad}... Bir tane daha. Her zaman bir tane daha.`]));
-  Chat.olay(sec(['POG ' + y.ad, y.ad + ' aldı KEKW', 'yine mi para harcadın', 'W alım']));
+  Anlatici.soyle(rastgeleMetin(METINLER.anlatici.olaylar.satinAlma, { ad: y.ad }));
+  Chat.olay(rastgeleMetin(METINLER.chat.olaylar.satinAlma, { ad: y.ad }));
   dukkanCiz(true);
   kaydet();
 }
@@ -516,8 +524,8 @@ const DVD = {
         kazan(o, 'dvd');
         S.kose++;
         Ses.kose();
-        Anlatici.soyle('İnanılmaz. DVD tam köşeye çarptı. Bu an nesiller boyu anlatılacak.', true);
-        Chat.olay('KÖŞEEEEE 📀');
+        Anlatici.soyle(rastgeleMetin(METINLER.anlatici.olaylar.kose), true);
+        Chat.olay(rastgeleMetin(METINLER.chat.olaylar.kose));
         ucanSayi(sinirla(d.x + this.w / 2, 40, W - 40), sinirla(d.y + this.h / 2, 30, H - 30), 'KÖŞE! +' + fmt(o));
       } else {
         kazan(dvdDegeri(), 'dvd');
@@ -647,7 +655,8 @@ function duzenle() {
 
   for (const p of document.querySelectorAll('#pencereler > .pencere')) {
     const yer = YERLER[p.id.slice(2)];
-    if (!yer || !p._ayar) continue;
+    // Yörüngedeki pencereleri tam ekran halkası her karede kendisi yerleştirir
+    if (!yer || !p._ayar || p._yorunge) continue;
     const solda = yer.x < SANAL_W / 2;
     const x = solda ? yer.x * s : ekranW - (SANAL_W - yer.x) * s;
     const w = yer.w * s, h = yer.h * s;
@@ -683,7 +692,7 @@ function videoSesleriniAyarla() {
   }
 }
 function videoSesliYap(id, sesSeviyesi) {
-  const f = document.querySelector(`#p-${id} iframe, #duvar iframe[data-id="${id}"]`);
+  const f = document.querySelector(`#p-${id} iframe`);
   if (!f) return;
   f.dataset.sesli = sesSeviyesi;
   f.dataset.kanal = VIDEO_KANALI[id] || 'video';
@@ -694,16 +703,13 @@ function videoSesliYap(id, sesSeviyesi) {
 function videoPencere(id, baslik, sesSeviyesi = 25) {
   sesSeviyesi = videoSesi(id, sesSeviyesi);
   const vid = youtubeId(AYARLAR.videolar[id]);
-  // Tam ekrandayken yeni videolar pencere açmaz, doğrudan tünele katılır
-  if (adet('tamEkran')) {
-    if (vid) Duvar.ekle(id, vid);
-    return;
-  }
   const icerik = vid
     ? youtubeIframe(vid, baslik, sesSeviyesi, VIDEO_KANALI[id])
     : `<div class="bos"><div>🎬<br>ayarlar.js dosyasında<br><b>videolar.${id}</b> için YouTube linki ekle</div></div>`;
   const p = pencere(id, baslik, icerik, 320, 180);
   sesliYuklenince(p);
+  // Tam ekrandayken alınan video kendi yerinde belirip halkaya katılır
+  if (adet('tamEkran') && !yukleniyor) Yorunge.katil(p, true);
 }
 // Videonun temel ses seviyesi (0-100)
 // 0: sessiz. Subway Surfers, sesli yükseltmesi alınana kadar sessiz çalar.
@@ -892,7 +898,7 @@ function gokZamanla() {
 // ============ ekran süresi ============
 const KAYNAK_ADLARI = {
   tik: 'Tıklama', dvd: 'DVD', pres: 'Hidrolik Pres', basarim: 'Başarımlar', seviye: 'Seviye ödülleri',
-  kazi: 'Kazı Kazan', slot: 'Slot Makinesi', dolar: 'Dolar', kripto: 'Kripto', duolingo: 'Duolingo',
+  kazi: 'Kazı Kazan', slot: 'Slot Makinesi', dolar: 'Faiz', kripto: 'Bitcoin', duolingo: 'Duolingo',
   whatsapp: 'WhatsApp', sms: 'SMS', ordek: 'Ördek', debug: 'Debug', diger: 'Diğer',
 };
 const kaynakAdi = k => KAYNAK_ADLARI[k] || (YUKSELTMELER.find(y => y.id === k) || {}).ad || k;
@@ -925,8 +931,9 @@ const Ekran = {
 
 // ============ seviyeler ============
 const Seviye = {
-  enFazla: 50,
-  gereken: l => Math.round(150 * Math.pow(l, 2.1)),
+  enFazla: 100,
+  // Bir sonraki seviye için gereken tecrübe. 100'e toplam ~14 milyon dopaminle, yani oyunun sonuna doğru ulaşılır.
+  gereken: l => Math.round(230 * Math.pow(l, 1.6)),
   xpEkle(n) {
     if (!adet('seviye') || S.seviye >= this.enFazla) return;
     S.xp += n;
@@ -1272,8 +1279,8 @@ const Slot = {
       o = Math.round(Math.max(S.dopamin * (a.carpan - 1), a.taban * olcek()));
       yazi = `JACKPOT! ×${String(a.carpan).replace('.', ',')} +${fmt(o)}`;
       S.jackpot++;
-      Anlatici.soyle('Üç aynı meyve. Bu an hiç bitmesin istiyor.', true);
-      Chat.olay('JACKPOT 🎰🎰🎰');
+      Anlatici.soyle(rastgeleMetin(METINLER.anlatici.olaylar.jackpot), true);
+      Chat.olay(rastgeleMetin(METINLER.chat.olaylar.jackpot));
       Ses.kose();
     } else if (a === b || b === c || a === c) {
       o = Math.round(Math.max(S.dopamin * SLOT_IKILI_ORAN, 40 * olcek()));
@@ -1301,9 +1308,10 @@ const Slot = {
   },
 };
 
-// ============ piyasalar: dolar ve kripto ============
-// Al, bekle, sat. Satınca ana para geri gelir; kâr kazanç sayılır, zarar dopaminden düşer.
+// ============ piyasalar: faiz hesabı ve bitcoin ============
+// Yatır/al, bekle, çek/sat. Çekince ana para geri gelir; kâr kazanç sayılır, zarar dopaminden düşer.
 // Kaldıraç yükseltmesi kârı da zararı da 2 katına çıkarır.
+// o.faiz: true olan piyasa bir faiz hesabıdır; düğmeler ve yazılar ona göre değişir.
 function piyasa(o) {
   return {
     kur() {
@@ -1314,9 +1322,9 @@ function piyasa(o) {
         <div class="dolar-alt">
           <div class="dolar-bilgi"><b class="kur-yazi"></b><span class="cuzdan"></span></div>
           <div class="dolar-btnlar">
-            <button type="button" data-is="ceyrek">%25 al</button>
-            <button type="button" data-is="hepsi">Hepsini al</button>
-            <button type="button" data-is="sat">Sat</button>
+            <button type="button" data-is="ceyrek">${o.faiz ? '%25 yatır' : '%25 al'}</button>
+            <button type="button" data-is="hepsi">${o.faiz ? 'Hepsini yatır' : 'Hepsini al'}</button>
+            <button type="button" data-is="sat">${o.faiz ? 'Çek' : 'Sat'}</button>
           </div>
         </div>`, 320, 186, 'piyasa-pencere');
       this.grafik = this.p.querySelector('.grafik').getContext('2d');
@@ -1349,13 +1357,13 @@ function piyasa(o) {
       if (fark >= 0) {
         kazan(fark, o.id);
         d.kar += fark;
-        ucanSayi(r.left + r.width / 2, r.top + 40, '+' + fmt(fark) + ' kâr');
+        ucanSayi(r.left + r.width / 2, r.top + 40, '+' + fmt(fark) + (o.faiz ? ' faiz' : ' kâr'));
         Ses.basari();
       } else {
         S.dopamin = Math.max(0, S.dopamin + fark);
         ucanSayi(r.left + r.width / 2, r.top + 40, '-' + fmt(-fark) + ' zarar');
         Ses.yanlis();
-        Chat.olay('zarar ettin KEKW');
+        Chat.olay(rastgeleMetin(METINLER.chat.olaylar.zarar));
       }
       d.miktar = 0;
       d.maliyet = 0;
@@ -1375,10 +1383,15 @@ function piyasa(o) {
     ciz() {
       if (!this.p) return;
       const d = this.d;
-      this.p.querySelector('.kur-yazi').textContent = `1 ${o.birim} = ${ondalikFmt.format(d.kur)} dopamin`;
       const deger = d.miktar * d.kur;
       const cuzdan = this.p.querySelector('.cuzdan');
-      cuzdan.textContent = d.miktar > 0 ? `Cüzdan: ≈ ${fmt(deger)} (${deger >= d.maliyet ? '▲' : '▼'})` : 'Cüzdan boş';
+      if (o.faiz) {
+        this.p.querySelector('.kur-yazi').textContent = `Faiz: dakikada %${String(o.dakikaFaizi * 100).replace('.', ',')}`;
+        cuzdan.textContent = d.miktar > 0 ? `Hesapta: ${fmt(deger)} (+${fmt(deger - d.maliyet)})` : 'Hesap boş';
+      } else {
+        this.p.querySelector('.kur-yazi').textContent = `1 ${o.birim} = ${fmt(d.kur)} dopamin`;
+        cuzdan.textContent = d.miktar > 0 ? `Cüzdan: ≈ ${fmt(deger)} (${deger >= d.maliyet ? '▲' : '▼'})` : 'Cüzdan boş';
+      }
       cuzdan.classList.toggle('zararda', d.miktar > 0 && deger < d.maliyet);
       const c = this.grafik;
       const g = d.gecmis;
@@ -1409,54 +1422,39 @@ function piyasa(o) {
   };
 }
 
-// Dolar uzun vadede hep yükselir ama inişli çıkışlıdır: küçük dalgalanmaların yanında ara sıra
-// sert düşer. Ortalamada her 2 saniyede ~%0,08 artar; bir saatte aşağı yukarı 4-5 katına çıkar.
+// Faiz hesabı: yatırılan para hiç düşmeden, dakikada %2 bileşik faizle büyür (bir saatte ~3,3 katı).
+// (Kayıtlar bozulmasın diye kod içindeki adı hâlâ "dolar".)
+const FAIZ_DAKIKA = 0.02;
 const Dolar = piyasa({
-  id: 'dolar', baslik: 'USD / TRY', birim: '$', baslangic: 34.5,
-  degisim: () => (Math.random() < 0.03 ? -rastgele(0.03, 0.06) : rastgele(-0.005, 0.0095)),
+  id: 'dolar', baslik: 'Faiz Hesabı', faiz: true, dakikaFaizi: FAIZ_DAKIKA, baslangic: 1,
+  // Kur her 2 saniyede bir güncellenir; 30 adım = 1 dakika
+  degisim: () => Math.pow(1 + FAIZ_DAKIKA, 1 / 30) - 1,
 });
-// Kripto çılgınca oynar: ara sıra çakılır, ara sıra uçar
+// Bitcoin: çok oynaktır, ara sıra sert çakılır ya da uçar, ama uzun vadede hep yükselir.
+// Ortalamada her 2 saniyede ~%0,14 artar; bir saatte aşağı yukarı 10 katına çıkar.
+// (Kod içindeki adı hâlâ "kripto".)
 const Kripto = piyasa({
-  id: 'kripto', baslik: 'DopaCoin / DPC', birim: 'DPC', baslangic: 1000, taban: 1,
+  id: 'kripto', baslik: 'BTC / USD', birim: 'BTC', baslangic: 65000, taban: 100,
   degisim: () => {
     const r = Math.random();
-    if (r < 0.02) return -rastgele(0.2, 0.4);
-    if (r < 0.04) return rastgele(0.25, 0.5);
-    return rastgele(-0.045, 0.05);
+    if (r < 0.03) return -rastgele(0.05, 0.12);
+    if (r < 0.05) return rastgele(0.06, 0.15);
+    return rastgele(-0.012, 0.016);
   },
 });
 
-// ============ aile whatsapp grubu ============
-// [kim, mesaj, uygun cevap]. Her mesaja üç şık çıkar: biri uygun cevap, ikisi başka mesajların cevabı.
-// Sadece uygun cevap dopamin verir; alakasız cevap verilirse aile tepki gösterir.
-const AILE_MESAJLARI = [
-  ['Annen', 'Günaydın 🌹☕', 'Günaydın anne 🌸'],
-  ['Teyze', 'Hayırlı sabahlar canlarım 🌸🌸🌸', 'Size de teyze'],
-  ['Dayı', '🎥 Video · Bunu mutlaka izleyin!!', 'İzledim dayı 👍'],
-  ['Babaannen', 'Torunum nasılsın?', 'İyiyim babaanne 😊'],
-  ['Hala', 'Bu mesajı 10 kişiye göndermezseniz 7 yıl şanssızlık...', 'Gönderdim hala 🙄'],
-  ['Annen', 'Yemek hazır, neredesin?', 'Geliyorum!'],
-  ['Teyze', 'Evlenmiyor musun artık? 😊', 'Kısmet teyze 😅'],
-  ['Enişte', 'Dolar ne olacak böyle', 'Bilmiyorum enişte'],
-  ['Kuzen', 'grubu sessize aldım', 'Ben de 🤫'],
-  ['Babaannen', 'ALO BENİ DUYUYOR MUSUNUZ', 'Duyuyoruz babaanne'],
-  ['Annen', 'Kaç saattir telefondasın', 'Bırakıyorum şimdi'],
-  ['Dayı', 'Bu bilgi çok önemli herkes okusun‼️', 'Okudum dayı'],
-  ['Hala', 'İyi geceler 🌙✨ tatlı rüyalar', 'İyi geceler hala 🌙'],
-  ['Teyze', '🎤 Sesli mesaj · 0:47', 'Dinledim teyze'],
-  ['Baban', 'Eve gelirken ekmek al', 'Tamam baba'],
-  ['Annen', 'Ceketini al hava soğuk', 'Aldım anne'],
-  ['Babaannen', 'Hayırlı cumalar 🌹🕌', 'Amin 🙏'],
-  ['Dayı', 'Maçı izliyor musunuz', 'Gol oldu mu?'],
-];
-// Alakasız cevap verilince gelen tepkiler
-const AILE_TEPKILERI = ['?', 'Ne alakası var', 'Yine telefona gömülmüş', 'Mesajı okumadın değil mi', '🤨', 'Anlamadım'];
+// ============ whatsapp: kankalar grubu ============
+// Mesajlar metinler.js'de. Her mesaja üç şık çıkar: biri uygun cevap, ikisi başka mesajların cevabı.
+// Sadece uygun cevap dopamin verir; alakasız cevap verilirse mesajı atan kişi tepki gösterir.
+// [kim, mesaj, uygun cevap]
+const AILE_MESAJLARI = METINLER.whatsapp.mesajlar.map(m => [m.kim, m.mesaj, m.cevap]);
+const AILE_TEPKILERI = METINLER.whatsapp.tepkiler;
 
 const Whatsapp = {
   bekleyenler: [],   // cevap bekleyen mesajlar (en eskisi önce)
   kur() {
     if (this.p) return;
-    this.p = pencere('whatsapp', 'Aile 👨‍👩‍👧‍👦', '<div class="wp"><div class="wp-akis"></div><div class="wp-cevaplar"></div></div>', 280, 230, 'wp-pencere');
+    this.p = pencere('whatsapp', 'Kankalar 🗿', '<div class="wp"><div class="wp-akis"></div><div class="wp-cevaplar"></div></div>', 280, 230, 'wp-pencere');
     this.akis = this.p.querySelector('.wp-akis');
     this.cevaplar = this.p.querySelector('.wp-cevaplar');
     this.cevaplar.addEventListener('click', e => {
@@ -1527,20 +1525,8 @@ const Whatsapp = {
 };
 
 // ============ sms ============
-const SMS_MESAJLARI = [
-  ['Kargo', 'Kargonuz yola çıktı 📦 Takip için tıklayın.'],
-  ['BANKA', 'Sn. müşterimiz, kartınızla 0,01 TL harcama yapıldı.'],
-  ['Annen', 'Neredesin? Arıyorum açmıyorsun.'],
-  ['MAĞAZA', 'Sadece bugün %70 indirim! Kaçırma 🔥'],
-  ['Operatör', "Paketinizin %80'ini kullandınız."],
-  ['Doğrulama', 'Doğrulama kodunuz: 482910. Kimseyle paylaşmayın.'],
-  ['Bilinmeyen', 'Tebrikler! Bir telefon kazandınız (kazanmadınız).'],
-  ['Kurye', 'Siparişiniz 3 dakika içinde kapınızda 🛵'],
-  ['Belediye', 'Yarın 09:00-17:00 arası su kesintisi yapılacaktır.'],
-  ['Arkadaşın', 'naber kanka bi bakar mısın'],
-  ['Oyun', 'Günlük ödülün seni bekliyor 🎁'],
-  ['Spor Salonu', 'Seni özledik! 3 aydır gelmiyorsun.'],
-];
+// Mesajlar metinler.js'de. [kimden, mesaj]
+const SMS_MESAJLARI = METINLER.sms.map(m => [m.kimden, m.mesaj]);
 
 const Sms = {
   zamanla() {
@@ -1593,7 +1579,7 @@ const Jeton = {
     this.harca(5);
     Guc.baslat('ikiKat', 30);
     Ses.guc();
-    Anlatici.soyle('Beş jeton harcadı. Karşılığında otuz saniyelik bir mutluluk.');
+    Anlatici.soyle(rastgeleMetin(METINLER.anlatici.olaylar.jetonHarcama));
   },
   ciz() {
     if (!this.acik) return;
@@ -1666,8 +1652,8 @@ const Guc = {
       this.baslat(tur, g.sure);
       Ses.guc();
       bildirim(`${g.ikon} ${g.ad}!`, `${g.acik} · ${g.sure} sn`);
-      Anlatici.soyle(`${g.ad}. Ekranda parlayan her şeye uzanmak, türün doğasında var.`);
-      Chat.olay(g.ad.toUpperCase() + ' 🔥🔥');
+      Anlatici.soyle(rastgeleMetin(METINLER.anlatici.olaylar.guclendirme, { ad: g.ad }));
+      Chat.olay(rastgeleMetin(METINLER.chat.olaylar.guclendirme, { ad: g.ad.toLocaleUpperCase('tr') }));
       b.remove();
     });
     $('#toplanabilir').appendChild(b);
@@ -1692,25 +1678,14 @@ const Guc = {
 // Bir doğa belgeselinin anlatıcısı gibi, olan biteni ekranın altında altyazıyla anlatır.
 // Yazılar harf harf belirir. İstenirse ses ayarlarından sesli okuma da açılabilir
 // (tarayıcının kendi sesli okuma özelliği; varsayılan olarak kapalı).
-const ANLATICI_LAFLARI = [
-  'Kahramanımız butona bir kez daha bastı. Neden? Bunu kendisi de bilmiyor.',
-  'Dışarıda güneş batıyor. Kimse fark etmedi.',
-  'Parmaklar yoruluyor. Ama durmak, bir seçenek değil.',
-  'Bir DVD logosu köşeye yaklaşıyor... yaklaşıyor... ve ıskalıyor.',
-  'Ördek ona bakıyor. Yargılamıyor. Sadece bakıyor.',
-  'Doğada her canlı bir şeyin peşindedir. Bu canlı, sayıların peşinde.',
-  'Ekranlar çoğaldıkça dikkat azalır. Bilim insanları buna "salı" diyor.',
-  'Uzaklarda bir yerde bir anne "yemek soğuyor" diye sesleniyor.',
-  'Bir an duraksadı. Sonra tıklamaya devam etti. Klasik.',
-];
-
+// Cümleler metinler.js'de.
 const Anlatici = {
   acik: false,
   son: 0,
   kur() {
     if (this.acik) return;
     this.acik = true;
-    this.soyle('Ve işte karşınızda: ekranın başındaki insan. Onu bugün yakından izleyeceğiz.', true);
+    this.soyle(metin(METINLER.anlatici.giris), true);
     const sonraki = () => { this.z = setTimeout(() => { this.bosLaf(); sonraki(); }, rastgele(18000, 35000)); };
     sonraki();
   },
@@ -1759,77 +1734,164 @@ const Anlatici = {
     if ((!S.sesAcik || S.ses.anlatici <= 0) && 'speechSynthesis' in window) speechSynthesis.cancel();
   },
   bosLaf() {
-    const laflar = [
-      ...ANLATICI_LAFLARI,
-      `Şimdiye kadar tam ${fmt(S.tik)} kez tıkladı. Ve sayı artmaya devam ediyor.`,
-      `${sureFmt(S.sure)} geçti. Kimse saati sormadı.`,
-    ];
-    this.soyle(sec(laflar));
+    this.soyle(rastgeleMetin(METINLER.anlatici.laflar));
   },
 };
 
-// ============ tam ekran: video tüneli ve solucan deliği ============
-// Tam Ekran alınınca video pencereleri dönerek merkeze çekilip kapanır. Ardından bütün videolar
-// ekranı kaplayan, dönen bir tünelin duvarlarında oynamaya devam eder; arkada kozmik bir ses uğuldar.
-// Solucan Deliği tüneli hızlandırır, renklerini kaydırır ve sesi güçlendirir.
+// ============ tam ekran ve solucan deliği ============
+// Tam Ekran: video pencereleri yerlerinden kalkıp bütün ekranı eşit parçalara bölerek doldurur
+// (dönmezler, gerçekten tam ekran olurlar). Arkada kozmik bir ses uğuldar.
+// Solucan Deliği: videolar ekranın etrafında dönen bir halkaya geçer, arka plan dönen bir uzaya dönüşür,
+// renkler kayar ve ses güçlenir.
+// Videolar hiçbir aşamada yeniden yüklenmez, aynı pencereler taşınır: böylece takılmadan ve sesleri
+// kesilmeden oynamaya devam ederler. (Önceden tünel videoları baştan yüklüyordu; görünmez anlarda
+// tarayıcı oynatıcıları yavaşlattığı için videolar yükleniyor ekranında takılıyordu.)
 const Duvar = {
   kur(animasyonlu) {
     if (this.el || oyunBitti) return;
     const el = document.createElement('div');
     el.id = 'duvar';
-    el.innerHTML = '<div class="tunel"></div>';
     if (animasyonlu) el.classList.add('giris');
     if (adet('solucan')) el.classList.add('solucan');
     document.body.insertBefore(el, $('#fx'));
     this.el = el;
-    this.tunel = el.querySelector('.tunel');
     Yildiz.aktif = true;
     Ses.kozmik();
-  },
-  // Satın alma anı: açık video pencereleri merkeze doğru dönerek çekilir, sonra tünel açılır
-  gec() {
-    for (const id of Object.keys(VIDEO_KANALI)) {
-      const p = document.getElementById('p-' + id);
-      if (!p) continue;
-      const r = p.getBoundingClientRect();
-      p.style.setProperty('--dx', (innerWidth / 2 - (r.left + r.width / 2)) + 'px');
-      p.style.setProperty('--dy', (innerHeight / 2 - (r.top + r.height / 2)) + 'px');
-      p.id = '';
-      p.classList.add('cekil');
-      setTimeout(() => p.remove(), 1100);
-    }
-    Anlatici.soyle('Ve bütün ekranlar tek bir girdapta birleşti. Geri dönüş yolu artık görünmüyor.', true);
-    setTimeout(() => {
-      this.kur(true);
-      for (const id of Object.keys(VIDEO_KANALI)) {
-        if (!adet(id)) continue;
-        const vid = youtubeId(AYARLAR.videolar[id]);
-        if (vid) this.ekle(id, vid);
-      }
-    }, 900);
-  },
-  ekle(id, vid) {
-    this.kur(false);
-    if (!this.tunel || this.tunel.querySelector(`[data-id="${id}"]`)) return;
-    const panel = document.createElement('div');
-    panel.className = 'panel';
-    panel.innerHTML = youtubeIframe(vid, id, videoSesi(id), VIDEO_KANALI[id]);
-    const f = panel.querySelector('iframe');
-    f.dataset.id = id;
-    oynaticiHazirlaninca(f);
-    this.tunel.appendChild(panel);
-    // Paneller tünelin çevresine altın açıyla (137,5°) dağılır, böylece art arda uçanlar hep farklı
-    // yönden gelir; uçuşları da zamanca eşit aralıklıdır
-    const paneller = [...this.tunel.children];
-    paneller.forEach((p, i) => {
-      p.style.setProperty('--aci', i * 137.5 + 'deg');
-      p.style.setProperty('--gecikme', -(i * 7 / paneller.length) + 's');
-    });
   },
   solucan() {
     this.kur(false);
     if (this.el) this.el.classList.add('solucan');
     Ses.kozmikGuclen();
+  },
+};
+
+// Tam ekran ızgarası: n videoyu ekrana eşit parçalar halinde dizer. Sütun sayısı, parçalar 16:9'a
+// olabildiğince yakın olacak şekilde seçilir; son satırda daha az video kalırsa onlar satırı eşit paylaşır.
+function izgaraHucreleri(n) {
+  let enIyi = null;
+  for (let sutun = 1; sutun <= n; sutun++) {
+    const satir = Math.ceil(n / sutun);
+    const sapma = Math.abs(Math.log((W / sutun) / (H / satir) / (16 / 9)));
+    if (!enIyi || sapma < enIyi.sapma) enIyi = { sutun, satir, sapma };
+  }
+  const { sutun, satir } = enIyi;
+  const h = H / satir;
+  const hucreler = [];
+  for (let i = 0; i < n; i++) {
+    const r = Math.floor(i / sutun);
+    const buSatirda = r === satir - 1 ? n - r * sutun : sutun;
+    const w = W / buSatirda;
+    hucreler.push({ x: (i % sutun) * w + w / 2, y: r * h + h / 2, w, h });
+  }
+  return hucreler;
+}
+
+const Yorunge = {
+  pler: [],
+  t: 0,
+  mod: null,   // 'izgara' (tam ekran) | 'halka' (solucan deliği)
+  // animasyonlu: satın alma anında pencereler bulundukları yerden yeni yerlerine süzülür
+  baslat(animasyonlu) {
+    if (oyunBitti) return;
+    Duvar.kur(animasyonlu);
+    if (animasyonlu) Anlatici.soyle(rastgeleMetin(METINLER.anlatici.olaylar.tamEkran), true);
+    for (const id of Object.keys(VIDEO_KANALI)) {
+      const p = document.getElementById('p-' + id);
+      if (p) this.katil(p, animasyonlu);
+    }
+  },
+  katil(p, animasyonlu) {
+    if (this.pler.includes(p)) return;
+    // Linki girilmemiş boş video yerleri halkaya katılmaz, kapanır
+    if (!p.querySelector('iframe')) {
+      pencereKapat(p.id.slice(2));
+      return;
+    }
+    // Başlangıç: pencerenin şu anki merkezi, ekrandaki boyutu ve eğikliği
+    const yer = YERLER[p.id.slice(2)] || {};
+    const olcek = Number((p.style.transform.match(/scale\(([\d.]+)\)/) || [])[1]) || 1;
+    const sol = parseFloat(p.style.left) || 0, ust = parseFloat(p.style.top) || 0;
+    const w = p._ayar.genislik * olcek, h = p._ayar.yuk * olcek;
+    p._yorunge = {
+      bas: { x: sol + w / 2, y: ust + h / 2, w, h, aci: yer.r || 0 },
+      gecis: animasyonlu ? 0 : 1,
+    };
+    p.classList.add('yorungede');
+    p.style.left = '0px';
+    p.style.top = '0px';
+    p.style.transformOrigin = '50% 50%';
+    this.pler.push(p);
+    this.guncelle(0);
+  },
+  guncelle(dt) {
+    this.pler = this.pler.filter(p => p.isConnected);
+    if (!this.pler.length) return;
+    const solucan = adet('solucan');
+    const mod = solucan ? 'halka' : 'izgara';
+    // Tam ekrandan solucana geçince pencereler bulundukları yerden halkaya süzülür
+    if (this.mod && this.mod !== mod) {
+      for (const p of this.pler) p._yorunge = { bas: p._yorunge.son, gecis: 0 };
+    }
+    this.mod = mod;
+    this.t += dt * 2.6;
+    const n = this.pler.length;
+    const hedefler = mod === 'izgara' ? izgaraHucreleri(n) : this.halka(n);
+    this.pler.forEach((p, i) => {
+      const g = p._yorunge;
+      if (g.gecis < 1) g.gecis = Math.min(1, g.gecis + dt / 1.6);
+      const hedef = hedefler[i];
+      // Başlangıçtan hedefe yumuşakça süzülür
+      const e = 1 - Math.pow(1 - g.gecis, 3);
+      const ara = (a, b) => a + (b - a) * e;
+      const son = {
+        x: ara(g.bas.x, hedef.x), y: ara(g.bas.y, hedef.y),
+        w: ara(g.bas.w, hedef.w), h: ara(g.bas.h, hedef.h),
+        aci: ara(g.bas.aci, hedef.aci || 0),
+      };
+      g.son = son;
+      p.classList.toggle('izgarada', mod === 'izgara');
+      this.yerlestir(p, son);
+    });
+  },
+  // Solucan deliği: ekranın kenarlarına yakın bir elips üzerinde dönen, halkaya teğet duran pencereler.
+  // Ortadaki buton ve sayaç açıkta kalır.
+  halka(n) {
+    const rx = W * 0.39, ry = H * 0.38;
+    const cevre = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
+    const temelW = Math.min(352, cevre * 0.85 / n);
+    const hedefler = [];
+    for (let i = 0; i < n; i++) {
+      const teta = this.t * 0.18 + (i / n) * Math.PI * 2;
+      const nefes = 1 + 0.12 * Math.sin(this.t * 1.3 + i * 1.7) + 0.08 * Math.sin(this.t * 4 + i);
+      const w = temelW * nefes;
+      hedefler.push({
+        x: W / 2 + Math.cos(teta) * rx,
+        y: H / 2 + Math.sin(teta) * ry,
+        w, h: w * 9 / 16,
+        aci: teta * 180 / Math.PI + 90 + 8 * Math.sin(this.t * 3 + i),
+      });
+    }
+    return hedefler;
+  },
+  // Pencereyi verilen merkez, boyut ve açıyla yerleştirir. İçindeki video, kutuyu boşluk kalmadan
+  // kaplayacak kadar büyütülür (taşan kenarlar kırpılır); oynatıcı videodan uzun tutulduğu için
+  // YouTube'un üstteki başlık şeridi de kırpılan kısımda kalır.
+  yerlestir(p, k) {
+    // Izgara durgunken her karede aynı değerleri yeniden yazıp tarayıcıyı yormamak için
+    const imza = `${k.x.toFixed(1)},${k.y.toFixed(1)},${k.w.toFixed(1)},${k.h.toFixed(1)},${k.aci.toFixed(2)}`;
+    if (p._yerImza === imza) return;
+    p._yerImza = imza;
+    const f = p.querySelector('iframe');
+    const govde = p.querySelector('.govde');
+    p.style.width = k.w + 'px';
+    govde.style.height = k.h + 'px';
+    const videoW = Math.max(k.w, k.h * 16 / 9);
+    const videoH = videoW * 9 / 16;
+    f.style.width = videoW + 'px';
+    f.style.height = videoH * 1.6 + 'px';
+    f.style.left = (k.w - videoW) / 2 + 'px';
+    f.style.top = (k.h - videoH * 1.6) / 2 + 'px';
+    p.style.transform = `translate(${k.x - k.w / 2}px, ${k.y - k.h / 2}px) rotate(${k.aci}deg)`;
   },
 };
 
@@ -1963,7 +2025,7 @@ const Ordek = {
     Ses.vak();
   },
   topla(b, e) {
-    const o = Math.round((b.classList.contains('altin') ? 20000 : 2000) * olcek());
+    const o = Math.round((b.classList.contains('altin') ? 5000 : 500) * olcek());
     kazan(o, 'ordek');
     S.yumurta++;
     ucanSayi(e.clientX, e.clientY, '+' + fmt(o));
@@ -1979,12 +2041,9 @@ const Ordek = {
 };
 
 // ============ yayın chati ============
-const CHAT_ADLARI = ['tıkçı42', 'dopaminbaba', 'ördekseven', 'kanka_07', 'gece_kuşu', 'DVDavcısı', 'slotkral', 'baykuş_izliyor', 'mikroödeme', 'x_x_x', 'sadece_izliyorum', 'ilk_gelen'];
-const CHAT_LAFLARI = [
-  'KEKW', 'w', 'LUL', 'reis ne yapıyon', 'bu adam deli', 'dopamin canavarı', 'tıkla tıkla tıkla', 'ilk', 'sa', 'as',
-  'buton kırılacak', 'nerden buldun bu oyunu', 'PogChamp', 'abi dolar kaç oldu', 'ördeğe yem ver', 'sıkıldım', 'GG',
-  'bu kaçıncı DVD', '📀📀📀', 'çok iyi gidiyon', 'çık dışarı biraz', 'annen çağırıyo', 'asdfghjkl', '+1', '💀', '🔥🔥',
-];
+// Kullanıcı adları ve mesajlar metinler.js'de
+const CHAT_ADLARI = METINLER.chat.adlar;
+const CHAT_LAFLARI = METINLER.chat.mesajlar;
 const CHAT_RENKLERI = ['#ff6b81', '#feca57', '#48dbfb', '#1dd1a1', '#a29bfe', '#ff9ff3', '#ffa502'];
 
 const Chat = {
@@ -2080,56 +2139,11 @@ const Son = {
 };
 
 // ============ duolingo ============
+// Sorular metinler.js'de.
 // Çoktan seçmeli: [Türkçe, doğru cevap, birbirine benzeyen yanlış şıklar]
-const DUO_SECMELI = [
-  ['düşünce', 'thought', ['though', 'through', 'tough']],
-  ['etkilemek', 'affect', ['effect', 'afford', 'effort']],
-  ['kabul etmek', 'accept', ['except', 'expect', 'aspect']],
-  ['hassas', 'sensitive', ['sensible', 'sentient', 'sensual']],
-  ['sonunda', 'eventually', ['actually', 'evidently', 'essentially']],
-  ['ödünç vermek', 'lend', ['borrow', 'lent', 'land']],
-  ['fırsat', 'opportunity', ['oportunity', 'opportunaty', 'oppurtunity']],
-  ['sorumluluk', 'responsibility', ['responsability', 'responsibilty', 'responsibillity']],
-  ['inanılmaz', 'incredible', ['incredulous', 'inedible', 'increasing']],
-  ['kıskanç', 'jealous', ['zealous', 'generous', 'gelatinous']],
-  ['öneri', 'suggestion', ['digestion', 'congestion', 'suggestive']],
-  ['vicdan', 'conscience', ['conscious', 'consensus', 'conscientious']],
-  ['deneyim', 'experience', ['experiment', 'expertise', 'expense']],
-  ['ihmal etmek', 'neglect', ['negotiate', 'reject', 'select']],
-  ['kalıcı', 'permanent', ['pertinent', 'prominent', 'persistent']],
-  ['tesadüf', 'coincidence', ['coexistence', 'confidence', 'consequence']],
-  ['kaçınılmaz', 'inevitable', ['invisible', 'invincible', 'inviolable']],
-  ['ertelemek', 'postpone', ['postpose', 'propose', 'purpose']],
-  ['tutarlı', 'consistent', ['constant', 'insistent', 'consistant']],
-  ['gereklilik', 'necessity', ['neccessity', 'necesity', 'nessecity']],
-  ['öngörmek', 'anticipate', ['participate', 'anticipant', 'antiquate']],
-  ['karşılaştırma', 'comparison', ['comparation', 'compassion', 'companion']],
-];
+const DUO_SECMELI = METINLER.duolingo.secmeli.map(k => [k.turkce, k.dogru, k.yanlislar]);
 // Yazmalı: İngilizce kelime sorulur, Türkçesi yazılır. [İngilizce, kabul edilen Türkçe cevaplar]
-const DUO_YAZMALI = [
-  ['squirrel', ['sincap']],
-  ['butterfly', ['kelebek']],
-  ['earthquake', ['deprem', 'zelzele']],
-  ['rainbow', ['gökkuşağı']],
-  ['library', ['kütüphane']],
-  ['nurse', ['hemşire']],
-  ['bridge', ['köprü']],
-  ['giraffe', ['zürafa']],
-  ['fridge', ['buzdolabı']],
-  ['toothbrush', ['diş fırçası']],
-  ['rabbit', ['tavşan']],
-  ['lightning', ['şimşek', 'yıldırım']],
-  ['neighborhood', ['mahalle', 'semt']],
-  ['umbrella', ['şemsiye']],
-  ['riddle', ['bilmece']],
-  ['jealous', ['kıskanç']],
-  ['opportunity', ['fırsat']],
-  ['experience', ['deneyim', 'tecrübe']],
-  ['responsibility', ['sorumluluk']],
-  ['coincidence', ['tesadüf', 'rastlantı']],
-  ['suggestion', ['öneri', 'tavsiye']],
-  ['wisdom', ['bilgelik']],
-];
+const DUO_YAZMALI = METINLER.duolingo.yazmali.map(k => [k.ingilizce, k.cevaplar]);
 // Cevap karşılaştırılırken büyük/küçük harf, boşluk ve Türkçe karakterler fark etmez (gokkusagi = gökkuşağı)
 const duoNormal = s => s.toLocaleLowerCase('tr').trim().replace(/\s+/g, ' ')
   .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
@@ -2236,14 +2250,16 @@ const BASARIMLAR = [
   { id: 'toplam10k', ad: 'Erteleme Ustası', acik: 'Toplam 10.000 dopamin topla', kosul: () => S.toplam >= 1e4, odul: 1000 },
   { id: 'toplam100k', ad: 'Dopamin Bağımlısı', acik: 'Toplam 100.000 dopamin topla', kosul: () => S.toplam >= 1e5, odul: 5000 },
   { id: 'seviye10', ad: 'Seviye Atladım', acik: '10. seviyeye ulaş', kosul: () => adet('seviye') && S.seviye >= 10, odul: 2500 },
+  { id: 'seviye50', ad: 'Yarı Yol', acik: '50. seviyeye ulaş', kosul: () => adet('seviye') && S.seviye >= 50, odul: 25000 },
+  { id: 'seviye100', ad: 'Zirve', acik: '100. seviyeye ulaş', kosul: () => adet('seviye') && S.seviye >= 100, odul: 100000 },
   { id: 'ekran1', ad: 'Ekran Bağımlısı', acik: '1 saat oyna', kosul: () => S.sure >= 3600, odul: 2000 },
   { id: 'esya', ad: 'Alışverişkolik', acik: 'Bir buton tipi satın al', kosul: () => Object.keys(S.esyalar).length > 1, odul: 2500 },
   { id: 'kazi', ad: 'Şanslı Gün', acik: 'Bir kazı kazan kazı', kosul: () => S.kazilan >= 1, odul: 1000 },
   { id: 'ucCarpi', ad: 'Kara Kedi', acik: 'Kazı kazanda üç ✖ çıkar', kosul: () => S.ucCarpi >= 1, odul: 7500 },
-  { id: 'dolar', ad: 'Döviz Bürosu', acik: 'Doları kârla sat', kosul: () => (S.piyasalar.dolar || {}).kar > 0, odul: 2500 },
+  { id: 'dolar', ad: 'Faizci', acik: 'Faiz hesabından kazançla çek', kosul: () => (S.piyasalar.dolar || {}).kar > 0, odul: 2500 },
   { id: 'jackpot', ad: 'JACKPOT', acik: 'Slotta üç aynı meyve tuttur', kosul: () => S.jackpot >= 1, odul: 5000 },
   { id: 'yumurta', ad: 'Ördek Çiftliği', acik: '10 ördek yumurtası topla', kosul: () => S.yumurta >= 10, odul: 10000 },
-  { id: 'kripto', ad: 'Ay\'a Gidiyoruz', acik: 'Kriptoyu kârla sat', kosul: () => (S.piyasalar.kripto || {}).kar > 0, odul: 10000 },
+  { id: 'kripto', ad: 'Ay\'a Gidiyoruz', acik: 'Bitcoin\'i kârla sat', kosul: () => (S.piyasalar.kripto || {}).kar > 0, odul: 10000 },
   { id: 'duo10', ad: 'Baykuşun Gözdesi', acik: '10 Duolingo sorusunu doğru cevapla', kosul: () => S.duoDogru >= 10, odul: 2500 },
   { id: 'gece', ad: 'Gece Kuşu', acik: 'Gece oyna', kosul: () => { const s = new Date().getHours(); return s >= 23 || s < 6; }, odul: 500 },
 ];
@@ -2287,8 +2303,8 @@ const IKONLAR = {
   sondakika: '📰', lofi: '🎧', yagmur: '🌧️', presHiz: '⏩', firildak: '🌀', pres: '🗜️', basarim: '🏆',
   gokgurultu: '⛈️', minecraft: '⛏️', slime: '🫧', technicolor: '🌈', yemek: '🍜', ekran: '📱',
   seviye: '⭐', radyo: '📻', otoPres: '🤖', kose: '📐', arayuz: '🎨', esya: '🛍️', kazi: '🎟️',
-  dolar: '💵', duolingo: '🦉', slot: '🎰', gta: '🚗', whatsapp: '💬', asmr: '🎙️', dvdHiz1: '💨',
-  subwaySes: '🔉', asmr2: '👂', sms: '✉️', fitness: '💪', jeton: '🪙', tepki: '🎥', kripto: '💹',
+  dolar: '🏦', duolingo: '🦉', slot: '🎰', gta: '🚗', whatsapp: '💬', asmr: '🎙️', dvdHiz1: '💨',
+  subwaySes: '🔉', asmr2: '👂', sms: '✉️', fitness: '💪', jeton: '🪙', tepki: '🎥', kripto: '₿',
   guclendirme: '⚡', anlatici: '🗣️', tamEkran: '📺', kaldirac: '⚖️', ordek: '🦆', chat: '📡',
   dvdHiz2: '☄️', solucan: '🌌', okyanus: '🌊',
 };
@@ -2607,6 +2623,7 @@ function dongu(t) {
   DVD.guncelle(dt);
   Yagmur.guncelle(dt);
   Yildiz.guncelle(dt);
+  Yorunge.guncelle(dt);
   Pres.guncelle(dt);
   Slot.guncelle(dt);
   Dolar.guncelle(dt);
